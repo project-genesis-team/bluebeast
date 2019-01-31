@@ -1,0 +1,19 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "williamyeh/ubuntu-trusty64-docker"
+  config.vm.hostname = "processor"
+
+  # Create custom network and copy build files
+  config.vm.network "private_network", ip: "192.168.20.19"
+  config.vm.provision "file", source: "./build", destination: "$HOME/build"
+
+  # Forward IPFS related ports
+  config.vm.network "forwarded_port", guest: 8080, host: 8080
+  config.vm.network "forwarded_port", guest: 8081, host: 8081
+  config.vm.network "forwarded_port", guest: 5001, host: 5001
+  config.vm.network "forwarded_port", guest: 4001, host: 4001
+  config.vm.network "forwarded_port", guest: 4002, host: 4002, protocol: "udp"
+
+end
