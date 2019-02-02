@@ -33,6 +33,6 @@ sudo vagrant up --provision
 
 ```sh
 vagrant ssh
-cd build
+cd build/
 ./build.sh
 ```
