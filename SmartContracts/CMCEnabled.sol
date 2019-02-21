@@ -1,4 +1,4 @@
-pragma solidity 0.5.0;
+pragma solidity ^0.4.0;
 
 import "./ContractProvider.sol";
 
@@ -9,28 +9,30 @@ import "./ContractProvider.sol";
 
 contract CMCEnabled {
 
-    address public cMC;
+    address public CMC;
 
     modifier isCMCEnabled(bytes32 _name) {
-        if (cMC == 0x0 && msg.sender != ContractProvider(cMC).contracts(_name)) revert();
+        if (CMC == 0x0 && msg.sender != ContractProvider(CMC).contracts(_name)) {
+            revert();
         _;
+        }
     }
 
     function setCMCAddress(address _cMC) external {
-        if (cMC != 0x0 && msg.sender != cMC) {
+        if (CMC != 0x0 && msg.sender != CMC) {
             revert();
         } else {
-            cMC = _cMC;
+            CMC = _cMC;
         }
     }
 
     function changeCMCAddress(address _newCMC) external {
-        require(cMC == msg.sender);
-        cMC = _newCMC;
+        require(CMC == msg.sender);
+        CMC = _newCMC;
     }
 
     function kill() external {
-        assert(msg.sender == cMC);
-        selfdestruct(cMC);
+        assert(msg.sender == CMC);
+        selfdestruct(CMC);
     }
 }

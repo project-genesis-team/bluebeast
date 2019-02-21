@@ -1,133 +1,81 @@
-pragma solidity 0.5.0;
+pragma solidity ^0.4.0;
 
-import "./ERC/ERC20Detailed.sol";
-import "./Tools/Ownable.sol";
+import "./Controller.sol";
+import "./CMCEnabled.sol";
+import "./Job.sol";
 
+contract Unitarium is CMCEnabled {
 
-contract Unitarium is ERC20Detailed, Ownable {
+    event JobPublished(
+        address customer,
+        uint256 maxstake,
+        address job
+    );
 
-    string public constant TOKEN_NAME = "Unitarium";
-    string public constant TOKEN_SYMBOL = "UNIT";
-    uint8 public constant TOKEN_DECIMALS = 18;
-
-    uint256 public constant TOTAL_SUPPLY = 1000000 * (10 ** uint256(tokenDecimals));
-
-    using SafeMath for uint256;
-
-    mapping (address => uint256) private _balances;
-    mapping (address => mapping (address => uint256)) private _allowed;
-
-    uint256 private _totalSupply;
-
-    constructor() public payable
-    ERC20Detailed(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_DECIMALS);
-    Ownable() {
-    _mint(owner(), TOTAL_SUPPLY);
+    function Unitarium() public payable {
+        mint(msg.sender, msg.value*100);
     }
 
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
+    function totalSupply() public view returns (uint) {
+        Controller(ContractProvider(CMC).contracts("Controller")).totalSupply();
     }
 
     function balanceOf(address owner) public view returns (uint256) {
-        return _balances[owner];
+        Controller(ContractProvider(CMC).contracts("Controller")).balanceOf(owner);
     }
 
-
     function allowance(address owner, address spender) public view returns (uint256) {
-        return _allowed[owner][spender];
+        Controller(ContractProvider(CMC).contracts("Controller")).allowance(owner, spender);
     }
 
     function transfer(address to, uint256 value) public returns (bool) {
-        require(value <= _balances[msg.sender]);
-        require(to != address(0));
-    
-        _balances[msg.sender] = _balances[msg.sender].sub(value);
-        _balances[to] = _balances[to].add(value);
-        
-        emit Transfer(msg.sender, to, value);
-        return true;
+        Controller(ContractProvider(CMC).contracts("Controller")).transfer(to, value);
     }
 
     function approve(address spender, uint256 value) public returns (bool) {
-        require(spender != address(0));
-    
-        _allowed[msg.sender][spender] = value;
-        emit Approval(msg.sender, spender, value);
-        return true;
+        Controller(ContractProvider(CMC).contracts("Controller")).approve(spender, value);
     }
 
     function transferFrom(address from, address to, uint256 value) public returns (bool) {
-    require(value <= _balances[from]);
-    require(value <= _allowed[from][msg.sender]);
-    require(to != address(0));
-    
-      _balances[from] = _balances[from].sub(value);
-      _balances[to] = _balances[to].add(value);
-        
-      _allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);
-      emit Transfer(from, to, value);
-      return true;
+        Controller(ContractProvider(CMC).contracts("Controller")).transferFrom(from, to, value);
     }
 
-    function _mint(address account, uint256 amount) internal {
-        require(amount != 0);
-        _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
-        emit Transfer(address(0), account, amount);
+    function mint(address account, uint256 amount) public view returns (bool) {
+        Controller(ContractProvider(CMC).contracts("Controller")).mint(account, amount);
+    }
+
+    //Send in unitarium address to job contract and call functionality from there.
+    function addJob(string _ipfs, uint _min, uint _max, uint _stake, uint _bidexp, uint _workexp, string _proto) public returns (bool) {
+        require(_max >= _min);
+        require(_workexp >= _bidexp);
+        if (transfer(getRewardsAddress(), _stake)) {
+            Job job = new Job(_ipfs, _proto, _min, _max, _stake, _bidexp, _workexp, address(this), getRewardsAddress());
+            
+            JobPublished(msg.sender, _stake, job);
+            Controller(ContractProvider(CMC).contracts("Controller")).addJob(address(job));
+            return true;
+        }
+        return false;
+
+        //Controller(ContractProvider(CMC).contracts("Controller")).addJob(_ipfs, _min, _max, _stake, _bidexp, _workexp, _proto);
+
+    }
+
+    
+    function getJobsFromPublisher(address _publisher) public view returns (address[]) {
+        Controller(ContractProvider(CMC).contracts("Controller")).getJobsFromPublisher(_publisher);
+    }
+
+    function getPublisherFromJob(address _job) public view returns (address) {
+        Controller(ContractProvider(CMC).contracts("Controller")).getPublisherFromJob(_job);
+    }
+
+    function placeBid(address _job, uint256 _amount, string[] _allowedProtocols) public {
+        require(balanceOf(msg.sender) >= _amount);
+        require(_job.call(bytes4(keccak256("placeBid(uint256, string[])")), _amount, _allowedProtocols));
+    }
+
+    function getRewardsAddress() public view returns (address) {
+        Controller(ContractProvider(CMC).contracts("Controller")).getRewardsAddress();
     }
 }
-
-/*
-
-contract Jobhandler {
-
-    mapping(address=>User)Users;
-    
-struct Job {
-    string ipfshash;
-    uint minNodes;
-    uint maxNodes;
-    uint maxStake;
-    string publisher;
-    string protocol;
-}
-
-struct User {
-    Job[] jobs;
-    uint balance;
-    
-}
-
-Users users;
-function AddJob() public {
-    HiddenAuction();
-}
-    
-function HiddenAuction() internal {
-        
-}
-    
-function NewContract() internal {
-        
-}
-    
-}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

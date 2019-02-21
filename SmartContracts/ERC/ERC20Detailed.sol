@@ -1,15 +1,15 @@
-pragma solidity 0.5.0;
+pragma solidity ^0.4.0;
 
 import "./IERC20.sol";
 
-
 contract ERC20Detailed is IERC20 {
 
-    string private _name;
+    string private  _name;
     string private _symbol;
+
     uint8 private _decimals;
 
-    constructor(string memory name, string memory symbol, uint8 decimals) public {
+    function ERC20Detailed(string name, string symbol, uint8 decimals) public {
         _name = name;
         _symbol = symbol;
         _decimals = decimals;
@@ -27,5 +27,3 @@ contract ERC20Detailed is IERC20 {
         return _decimals;
     }
 }
-
-

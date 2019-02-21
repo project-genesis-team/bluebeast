@@ -1,21 +1,52 @@
-
-pragma solidity 0.5.0;
+pragma solidity ^0.4.0;
 
 import "./CMCEnabled.sol";
 import "./Storage.sol";
 
 
 contract Controller is CMCEnabled {
-    
-    function setX(uint _x) external isCMCEnabled("UserEntry") {
-        Storage(ContractProvider(CMC).contracts("Storage")).setX(_x);
+
+    function totalSupply() isCMCEnabled("UserEntry") external view returns (uint256) {
+        Storage(ContractProvider(CMC).contracts("Storage")).totalSupply();
     }
 
-    function setBalance(address _address, uint256 _amount) external isCMCEnabled("UserEntry") {
-        Storage(ContractProvider(CMC).contracts("Storage")).setBalance(_address, _amount);
+    function balanceOf(address owner) isCMCEnabled("UserEntry") external view returns (uint256) {
+        Storage(ContractProvider(CMC).contracts("Storage")).balanceOf(owner);
     }
 
-    function getBalance(address _address) external isCMCEnabled("UserEntry") {
-        Storage(ContractProvider(CMC).contracts("Storage")).getBalance(_address);
+    function allowance(address owner, address spender) isCMCEnabled("UserEntry") external view returns (uint256) {
+        Storage(ContractProvider(CMC).contracts("Storage")).allowance(owner, spender);
+    }
+
+    function transfer(address to, uint256 value) isCMCEnabled("UserEntry") external returns (bool) {
+        Storage(ContractProvider(CMC).contracts("Storage")).transfer(to, value);
+    }
+
+    function approve(address spender, uint256 value) isCMCEnabled("UserEntry") external returns (bool) {
+        Storage(ContractProvider(CMC).contracts("Storage")).approve(spender, value);
+    }
+
+    function transferFrom(address from, address to, uint256 value) isCMCEnabled("UserEntry") external returns (bool) {
+        Storage(ContractProvider(CMC).contracts("Storage")).transferFrom(from, to, value);
+    }
+
+    function mint(address account, uint256 amount) isCMCEnabled("UserEntry") external view returns (bool) {
+        Storage(ContractProvider(CMC).contracts("Storage")).mint(account, amount);
+    }
+
+    function addJob(address job) isCMCEnabled("UserEntry") external returns (bool) {
+        Storage(ContractProvider(CMC).contracts("Storage")).addJob(job);
+    }
+
+    function getJobsFromPublisher(address _publisher) isCMCEnabled("UserEntry") external view returns (address[]) {
+        Storage(ContractProvider(CMC).contracts("Storage")).getJobsFromPublisher(_publisher);
+    }
+
+    function getPublisherFromJob(address _job) isCMCEnabled("UserEntry") external view returns (address) {
+        Storage(ContractProvider(CMC).contracts("Storage")).getPublisherFromJob(_job);
+    }
+
+    function getRewardsAddress() isCMCEnabled("UserEntry") external view returns (address) {
+        Storage(ContractProvider(CMC).contracts("Storage")).getRewardsAddress();
     }
 }

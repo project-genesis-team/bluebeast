@@ -1,10 +1,10 @@
-pragma solidity 0.5.0;
+pragma solidity ^0.4.0;
 
 import "./CMCEnabled.sol";
-import "./Ownable.sol";
-
+import "./Tools/Ownable.sol";
 
 contract CMC is Ownable {
+
     mapping (bytes32 => address) public contracts;
 
     function addContract(bytes32 _name, address _address) external onlyOwner {
