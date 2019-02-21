@@ -9,9 +9,4 @@ contract Rewards is Unitarium {
     function Rewards() public payable {
 
     }
-    
-    function payout() external {
-    
-    }
-
 }

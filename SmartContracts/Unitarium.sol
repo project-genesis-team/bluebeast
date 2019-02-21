@@ -44,7 +44,6 @@ contract Unitarium is CMCEnabled {
         Controller(ContractProvider(CMC).contracts("Controller")).mint(account, amount);
     }
 
-    //Send in unitarium address to job contract and call functionality from there.
     function addJob(string _ipfs, uint _min, uint _max, uint _stake, uint _bidexp, uint _workexp, string _proto) public returns (bool) {
         require(_max >= _min);
         require(_workexp >= _bidexp);
@@ -56,9 +55,6 @@ contract Unitarium is CMCEnabled {
             return true;
         }
         return false;
-
-        //Controller(ContractProvider(CMC).contracts("Controller")).addJob(_ipfs, _min, _max, _stake, _bidexp, _workexp, _proto);
-
     }
 
     
