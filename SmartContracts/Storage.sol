@@ -123,7 +123,7 @@ contract Storage is CMCEnabled, ERC20Detailed, Ownable {
 
     /**
      * @dev Mint tokens for a specified address
-     * @param to The address to mint to.
+     * @param account The address to mint to.
      * @param amount The amount to be minted.
      */
     function mint(address account, uint256 amount) isCMCEnabled("Storage") external view returns (bool) {
@@ -137,7 +137,7 @@ contract Storage is CMCEnabled, ERC20Detailed, Ownable {
      * an account. This encapsulates the modification of balances such that the
      * proper events are emitted.
      * @param account The account that will receive the created tokens.
-     * @param value The amount that will be created.
+     * @param amount The amount that will be created.
      */
     function _mint(address account, uint256 amount) internal returns (bool) {
         require(amount != 0);

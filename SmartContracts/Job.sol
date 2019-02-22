@@ -6,6 +6,7 @@ import "./Tools/SafeMath.sol";
 
 /**
 * @dev Job is a unique contract that instantiate with specialized parameters depending on the publisher.
+* @dev TODO: Somewhere a nested array is used which solidity don't allow, find a workaround to it.
 **/
 contract Job {
 
@@ -141,9 +142,9 @@ contract Job {
      * @param winners an array of winning bids.
      * @dev TODO: Maybe make this callable by workers instead in order to keep ipfsHash hidden?
      **/
-    function _publishHashToWinners(Bid[] winners) internal {
-        for (uint j = 0; j < winners.length; j++) {
-            AnnounceWorker(winners[j].bidder, winners[j].amount, ipfsHash, protocol, this);
+    function _publishHashToWinners(Bid[] _winners) internal {
+        for (uint j = 0; j < _winners.length; j++) {
+            AnnounceWorker(_winners[j].bidder, winners[j].amount, ipfsHash, protocol, this);
         }
     }
 

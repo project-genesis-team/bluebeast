@@ -17,11 +17,15 @@ contract Unitarium is CMCEnabled {
    /**
      * @dev Unitarium mints 100 UNITs for every 1 ETH that's sent to it..
      */
-    function Unitarium() public payable {
+    function Unitarium() public {
+        
+    }
+
+    function etherSent() public payable {
         mint(msg.sender, msg.value*100);
     }
 
-    function totalSupply() public view returns (uint) {
+    function totalSupply() public view returns (uint256) {
         Controller(ContractProvider(CMC).contracts("Controller")).totalSupply();
     }
 
@@ -72,7 +76,6 @@ contract Unitarium is CMCEnabled {
         }
         return false;
     }
-
     
     function getJobsFromPublisher(address _publisher) public view returns (address[]) {
         Controller(ContractProvider(CMC).contracts("Controller")).getJobsFromPublisher(_publisher);
