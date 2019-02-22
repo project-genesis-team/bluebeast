@@ -11,6 +11,9 @@ contract CMCEnabled {
 
     address public CMC;
 
+   /**
+    * @dev Modifier for contract access control
+    */
     modifier isCMCEnabled(bytes32 _name) {
         if (CMC == 0x0 && msg.sender != ContractProvider(CMC).contracts(_name)) {
             revert();
@@ -18,6 +21,9 @@ contract CMCEnabled {
         }
     }
 
+   /**
+    * @dev Sets contracts inital registry address
+    */
     function setCMCAddress(address _cMC) external {
         if (CMC != 0x0 && msg.sender != CMC) {
             revert();
@@ -26,11 +32,17 @@ contract CMCEnabled {
         }
     }
 
+   /**
+    * @dev Changes registry address, must be called from registry itself
+    */
     function changeCMCAddress(address _newCMC) external {
         require(CMC == msg.sender);
         CMC = _newCMC;
     }
 
+   /**
+    * @dev Destroys registry, must be called from registry itself
+    */
     function kill() external {
         assert(msg.sender == CMC);
         selfdestruct(CMC);

@@ -2,28 +2,41 @@ pragma solidity ^0.4.0;
 
 import "./IERC20.sol";
 
+/**
+ * @title ERC20Detailed token
+ * @dev The decimals are only for visualization purposes.
+ * All the operations are done using the smallest and indivisible token unit,
+ * just as on Ethereum all the operations are done in wei.
+ */
 contract ERC20Detailed is IERC20 {
-
-    string private  _name;
+    string private _name;
     string private _symbol;
-
     uint8 private _decimals;
 
-    function ERC20Detailed(string name, string symbol, uint8 decimals) public {
+    function ERC20Detailed(string memory name, string memory symbol, uint8 decimals) public {
         _name = name;
         _symbol = symbol;
         _decimals = decimals;
     }
 
+    /**
+     * @return the name of the token.
+     */
     function name() public view returns (string memory) {
         return _name;
     }
 
-    function symbol() public view returns(string memory) {
+    /**
+     * @return the symbol of the token.
+     */
+    function symbol() public view returns (string memory) {
         return _symbol;
     }
 
-    function decimals() public view returns(uint8) {
+    /**
+     * @return the number of decimals of the token.
+     */
+    function decimals() public view returns (uint8) {
         return _decimals;
     }
 }

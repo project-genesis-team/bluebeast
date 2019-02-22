@@ -4,6 +4,9 @@ import "./Controller.sol";
 import "./CMCEnabled.sol";
 import "./Job.sol";
 
+/**
+* @dev Unitarium handles all logic except for storage allocation which is assigned to Storage through the Controller.
+**/
 contract Unitarium is CMCEnabled {
 
     event JobPublished(
@@ -11,7 +14,9 @@ contract Unitarium is CMCEnabled {
         uint256 maxstake,
         address job
     );
-
+   /**
+     * @dev Unitarium mints 100 UNITs for every 1 ETH that's sent to it..
+     */
     function Unitarium() public payable {
         mint(msg.sender, msg.value*100);
     }
@@ -44,13 +49,24 @@ contract Unitarium is CMCEnabled {
         Controller(ContractProvider(CMC).contracts("Controller")).mint(account, amount);
     }
 
-    function addJob(string _ipfs, uint _min, uint _max, uint _stake, uint _bidexp, uint _workexp, string _proto) public returns (bool) {
-        require(_max >= _min);
-        require(_workexp >= _bidexp);
-        if (transfer(getRewardsAddress(), _stake)) {
-            Job job = new Job(_ipfs, _proto, _min, _max, _stake, _bidexp, _workexp, address(this), getRewardsAddress());
+   /**
+     * @dev Called by customers requesting a job. Parameter data is packaged into a job struct then assigned to Storage.
+     * @param ipfs Hash-address of the files stored on IPFS.
+     * @param min Minimum amount of users they want to form a consensus. Lower numbers equal lower credibility.
+     * @param max Maximum amount of users they want to form a consensus. Higher numbers equal higher costs.
+     * @param stake Stake in UNITs that the publisher is willing to pay for the job.
+     * @param bidexp Expiration block for when the bidding should been finalized.
+     * @param workexp Expiration block for when the consensus should been reached.
+     * @param proto The protocol to which the job belongs. Marked 'none' is unspecified.
+     * @return a boolean stating whether the job was successfully added.
+     */
+    function addJob(string ipfs, uint min, uint max, uint stake, uint bidexp, uint workexp, string proto) public returns (bool) {
+        require(max >= min);
+        require(workexp >= bidexp);
+        if (transfer(getRewardsAddress(), stake)) {
+            Job job = new Job(ipfs, proto, min, max, stake, bidexp, workexp, address(this), getRewardsAddress());
             
-            JobPublished(msg.sender, _stake, job);
+            JobPublished(msg.sender, stake, job);
             Controller(ContractProvider(CMC).contracts("Controller")).addJob(address(job));
             return true;
         }
@@ -66,9 +82,15 @@ contract Unitarium is CMCEnabled {
         Controller(ContractProvider(CMC).contracts("Controller")).getPublisherFromJob(_job);
     }
 
-    function placeBid(address _job, uint256 _amount, string[] _allowedProtocols) public {
-        require(balanceOf(msg.sender) >= _amount);
-        require(_job.call(bytes4(keccak256("placeBid(uint256, string[])")), _amount, _allowedProtocols));
+   /**
+     * @dev Places a bids on a job contract address if protocol is allowed and balance is enough.
+     * @param job Contract address of the job.
+     * @param amount Bidded amount of UNITs.
+     * @param allowedProtocols An array of all protocols the worker allow to process.
+     **/
+    function placeBid(address job, uint256 amount, string[] allowedProtocols) public {
+        require(balanceOf(msg.sender) >= amount);
+        require(job.call(bytes4(keccak256("placeBid(uint256, string[])")), amount, allowedProtocols));
     }
 
     function getRewardsAddress() public view returns (address) {

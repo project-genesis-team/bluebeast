@@ -4,6 +4,9 @@ import "./Unitarium.sol";
 import "./Storage.sol";
 import "./Tools/SafeMath.sol";
 
+/**
+* @dev Job is a unique contract that instantiate with specialized parameters depending on the publisher.
+**/
 contract Job {
 
     address public unitariumAddress;
@@ -12,6 +15,7 @@ contract Job {
     address[] public workers;
 
     bool public applicable;
+    bool public consensus;
 
     string public ipfsHash;
     string public protocol;
@@ -73,6 +77,7 @@ contract Job {
         publisher = msg.sender;
         workers = [0];
         applicable = true;
+        consensus = false;
         ipfsHash = _hash;
         protocol = _proto;
         minimumNodes = _minNodes;
@@ -85,26 +90,35 @@ contract Job {
         rewardsAddress = _rewards;
     }
 
-    function placeBid(uint _amount, string[] _allowedProtocols) external {
+    /**
+     * @dev Called from unitarium and check if protocol is allowed for the worker, if so pushes bid.
+     * @param amount of UNITs bid for the job.
+     * @param allowedProtocols array of allowed protocols.
+     **/
+    function placeBid(uint amount, string[] allowedProtocols) external {
         require(applicable);
         bool protocolAllowed;
 
-        for (uint i = 0; i < _allowedProtocols.length; i++) {
-            if (keccak256(protocol) == keccak256(_allowedProtocols[i])) {
+        for (uint i = 0; i < allowedProtocols.length; i++) {
+            if (keccak256(protocol) == keccak256(allowedProtocols[i])) {
                 protocolAllowed = true;
             }
         }
         
         if (protocolAllowed) {
-            Bid memory bid = Bid(msg.sender, _amount);
+            Bid memory bid = Bid(msg.sender, amount);
             bids.push(bid);
-            initialBid[msg.sender] = _amount;
-            BidPushed(this, _amount);
+            initialBid[msg.sender] = amount;
+            BidPushed(this, amount);
         } else {
-            InvalidProtocol(this, protocol, _allowedProtocols);
+            InvalidProtocol(this, protocol, allowedProtocols);
         }
     }
 
+    /**
+     * @dev Check for highest bids 
+     * @dev TODO: Make this function callable each block to run automatically.
+     **/
     function announceWinners() public {
         require(msg.sender == publisher);
         require(block.number >= biddingExpirationBlock);
@@ -119,15 +133,23 @@ contract Job {
             acceptedBidSum += sortedBids[i].amount;
             winners.push(sortedBids[i]);
         }
-        publishHashToWinners(winners);
+        _publishHashToWinners(winners);
     }
 
-    function publishHashToWinners(Bid[] _winners) public {
-        for (uint j = 0; j < _winners.length; j++) {
-            AnnounceWorker(_winners[j].bidder, _winners[j].amount, ipfsHash, protocol, this);
+    /**
+     * @dev Announces IPFS-hash and other info to winning bids. 
+     * @param winners an array of winning bids.
+     * @dev TODO: Maybe make this callable by workers instead in order to keep ipfsHash hidden?
+     **/
+    function _publishHashToWinners(Bid[] winners) internal {
+        for (uint j = 0; j < winners.length; j++) {
+            AnnounceWorker(winners[j].bidder, winners[j].amount, ipfsHash, protocol, this);
         }
     }
 
+    /**
+     * @dev Loop through winning bids and check if msg.sender is among them.
+     **/
     function isAuthorized() public returns (bool) {
         for (uint i = 0; i < winners.length; i++) {
             if (msg.sender == winners[i].bidder) {
@@ -142,15 +164,25 @@ contract Job {
         _;
     }
 
+    /**
+     * @dev Check that the publisher is Authorized and uploads result if consensus hasen't been reached.
+     * @param result The computed IPFS result.
+     **/
     function publishResult(bytes32 _result) public checkAuthorized() {
+        require(!consensus);
         Result memory res = Result(msg.sender, _result);
         results.push(res);
+        _checkConsensus();
     }
-            //TODO:Compare elements in result and find is the most common element is more than 51%.
-            //assign all owners of elements that's majority to an array and send it to payout.
-    function consensus() internal {
+    
+    /**
+     * @dev Checks if conditions for consensus apply and if so check if the most common result is 51% or more. If so, runs payout.
+     **/
+    function _checkConsensus() internal {
         if ((block.number >= workExpirationBlock && results.length >= minimumNodes) || 
         results.length >= maximumNodes-1) {
+
+            consensus = true;
 
             bytes32 highestResult;
 
@@ -168,24 +200,29 @@ contract Job {
                         toPay.push(results[j].worker);
                     }
                 }
-                payout(toPay);
+                _payout(toPay);
             } else {
                 NoConsensus(results);
-                revert();
             }
-        } else {
-            revert();
         }
     }
 
-    function payout(address[] _toReward) internal {
+   /**
+     * @dev Approves rewardContract to pay out rewards then execute the payouts through Unitarium.
+     * @param toReward Array of addresses to payout rewards to.
+     **/
+    function _payout(address[] toReward) internal {
         require(unitariumAddress.call(bytes4(keccak256("allowance(address, address")), rewardsAddress, this));
         require(unitariumAddress.call(bytes4(keccak256("approve(address, address")), rewardsAddress, maximumStake));
-        for (uint i = 0; i < _toReward.length; i++) {
-            require(unitariumAddress.call(bytes4(keccak256("transferFrom(address, address, uint256")), _toReward[i], initialBid[_toReward[i]]));
+        for (uint i = 0; i < toReward.length; i++) {
+            require(unitariumAddress.call(bytes4(keccak256("transferFrom(address, address, uint256")), toReward[i], initialBid[toReward[i]]));
         }
     }
 
+   /**
+     * @dev Sort an array of bids from highest to lowest.
+     * @param arr Array of Bids
+     **/
     function sortBidArray(Bid[] memory arr) private pure returns (Bid[]) {
         uint256 len = arr.length;
         for (uint i = 0; i < len; i++) {
