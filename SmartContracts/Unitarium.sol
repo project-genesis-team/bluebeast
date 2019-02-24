@@ -90,6 +90,7 @@ contract Unitarium is CMCEnabled {
      * @param job Contract address of the job.
      * @param amount Bidded amount of UNITs.
      * @param allowedProtocols An array of all protocols the worker allow to process.
+     * @dev TODO: Rework so it's not nested.
      **/
     function placeBid(address job, uint256 amount, string[] allowedProtocols) public {
         require(balanceOf(msg.sender) >= amount);

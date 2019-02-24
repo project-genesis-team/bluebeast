@@ -95,15 +95,17 @@ contract Job {
      * @dev Called from unitarium and check if protocol is allowed for the worker, if so pushes bid.
      * @param amount of UNITs bid for the job.
      * @param allowedProtocols array of allowed protocols.
+     * @dev TODO: Rework so it's not nested.
      **/
     function placeBid(uint amount, string[] allowedProtocols) external {
         require(applicable);
         bool protocolAllowed;
 
         for (uint i = 0; i < allowedProtocols.length; i++) {
-            if (keccak256(protocol) == keccak256(allowedProtocols[i])) {
-                protocolAllowed = true;
-            }
+                protocolAllowed = _compare(protocol, allowedProtocols[i]);
+                if (protocolAllowed) { 
+                    break; 
+                }
         }
         
         if (protocolAllowed) {
@@ -116,9 +118,18 @@ contract Job {
         }
     }
 
+    function _compare(string toAllow, string allowedProtocol) internal returns (bool) {
+        if (keccak256(protocol) == keccak256(allowedProtocol)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * @dev Check for highest bids 
      * @dev TODO: Make this function callable each block to run automatically.
+     * @dev TODO: Rework so it's not nested.
      **/
     function announceWinners() public {
         require(msg.sender == publisher);
@@ -139,8 +150,9 @@ contract Job {
 
     /**
      * @dev Announces IPFS-hash and other info to winning bids. 
-     * @param winners an array of winning bids.
+     * @param _winners an array of winning bids.
      * @dev TODO: Maybe make this callable by workers instead in order to keep ipfsHash hidden?
+     * @dev TODO: Rework so it's not nested.
      **/
     function _publishHashToWinners(Bid[] _winners) internal {
         for (uint j = 0; j < _winners.length; j++) {
@@ -167,7 +179,7 @@ contract Job {
 
     /**
      * @dev Check that the publisher is Authorized and uploads result if consensus hasen't been reached.
-     * @param result The computed IPFS result.
+     * @param _result The computed IPFS result.
      **/
     function publishResult(bytes32 _result) public checkAuthorized() {
         require(!consensus);
@@ -223,8 +235,9 @@ contract Job {
    /**
      * @dev Sort an array of bids from highest to lowest.
      * @param arr Array of Bids
+     * @dev TODO: Rework so it's not nested.
      **/
-    function sortBidArray(Bid[] memory arr) private pure returns (Bid[]) {
+    function sortBidArray(Bid[] memory arr) private pure returns (Bid[] memory) {
         uint256 len = arr.length;
         for (uint i = 0; i < len; i++) {
             for (uint j = i+1; j < len; j++) {
